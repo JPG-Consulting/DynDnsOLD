@@ -13,6 +13,11 @@ return array(
         'password' => null,
         'options'  => array()
     ),
-    'authentication_realm' => $_SERVER['SERVER_NAME'],
+    /**
+     * Authentication realm (Optional)
+     * 
+     * Default: $_SERVER['SERVER_NAME']
+     */
+    //'authentication_realm' => 'Restricted area',
     'ttl' => 300
 );

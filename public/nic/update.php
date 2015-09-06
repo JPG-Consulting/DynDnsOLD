@@ -102,34 +102,7 @@ if (!is_array($user) || empty($user)) {
     exit();
 }
 
-$status = 0;
-$hash=$user['password'];
-$ret = crypt($_SERVER['PHP_AUTH_PW'], $hash);
-if (function_exists('mb_strlen')) {
-    if (!is_string($ret) || mb_strlen($ret) != mb_strlen($hash) || mb_strlen($ret) <= 13) {
-        header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
-        header('HTTP/1.0 401 Unauthorized');
-        echo "badauth\n";
-        exit();
-    }
-
-    for ($i = 0; $i < mb_strlen($ret); $i++) {
-        $status |= (ord($ret[$i]) ^ ord($hash[$i]));
-    }    
-} else {
-    if (!is_string($ret) || strlen($ret) != strlen($hash) || strlen($ret) <= 13) {
-        header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
-        header('HTTP/1.0 401 Unauthorized');
-        echo "badauth\n";
-        exit();
-    }
-
-    for ($i = 0; $i < strlen($ret); $i++) {
-        $status |= (ord($ret[$i]) ^ ord($hash[$i]));
-    }
-}
-
-if ($status !== 0) {
+if (!password_verify($_SERVER['PHP_AUTH_PW'], $user['password'])) {
     header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
     header('HTTP/1.0 401 Unauthorized');
     echo "badauth\n";

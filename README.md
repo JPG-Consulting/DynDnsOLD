@@ -4,7 +4,7 @@ Open protocol for Dynamic DNS updates.
 
 ## Requirements
 
-* PHP >= 5.3.7
+* PHP >= 5.5.0
 
 ## Password
 

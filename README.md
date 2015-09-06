@@ -4,8 +4,8 @@ Open protocol for Dynamic DNS updates.
 
 ## Requirements
 
-* PHP 5.2.0
+* PHP >= 5.3.7
 
-## Security concerns
+## Password
 
-Password are stored in plain text.
+The passwords may be generated through the website [http://efoxdesigns.com/max/crypt/hash.php](http://efoxdesigns.com/max/crypt/hash.php)

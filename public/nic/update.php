@@ -77,7 +77,7 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
  * Validate user.
  */
 //var_dump($dbh);
-$sth = $dbh->prepare("SELECT * FROM users WHERE username = :username AND password = :password");
+$sth = $dbh->prepare("SELECT * FROM users WHERE username = :username");
 if (!$sth instanceof PDOStatement) {
     header("HTTP/1.1 500 Internal Server Error");
     echo "911\n";
@@ -85,8 +85,7 @@ if (!$sth instanceof PDOStatement) {
 }
 
 $result = $sth->execute(array(
-    ':username' => $_SERVER['PHP_AUTH_USER'],
-    ':password' => $_SERVER['PHP_AUTH_PW']	
+    ':username' => $_SERVER['PHP_AUTH_USER']
 ));
 
 if (!$result) {
@@ -97,6 +96,40 @@ if (!$result) {
 
 $user = $sth->fetch(PDO::FETCH_ASSOC);
 if (!is_array($user) || empty($user)) {
+    header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
+    header('HTTP/1.0 401 Unauthorized');
+    echo "badauth\n";
+    exit();
+}
+
+$status = 0;
+$hash=$user['password'];
+$ret = crypt($_SERVER['PHP_AUTH_PW'], $hash);
+if (function_exists('mb_strlen')) {
+    if (!is_string($ret) || mb_strlen($ret) != mb_strlen($hash) || mb_strlen($ret) <= 13) {
+        header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
+        header('HTTP/1.0 401 Unauthorized');
+        echo "badauth\n";
+        exit();
+    }
+
+    for ($i = 0; $i < mb_strlen($ret); $i++) {
+        $status |= (ord($ret[$i]) ^ ord($hash[$i]));
+    }    
+} else {
+    if (!is_string($ret) || strlen($ret) != strlen($hash) || strlen($ret) <= 13) {
+        header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
+        header('HTTP/1.0 401 Unauthorized');
+        echo "badauth\n";
+        exit();
+    }
+
+    for ($i = 0; $i < strlen($ret); $i++) {
+        $status |= (ord($ret[$i]) ^ ord($hash[$i]));
+    }
+}
+
+if ($status !== 0) {
     header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
     header('HTTP/1.0 401 Unauthorized');
     echo "badauth\n";

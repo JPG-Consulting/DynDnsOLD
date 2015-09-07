@@ -8,4 +8,7 @@ Open protocol for Dynamic DNS updates.
 
 ## Password
 
-The passwords may be generated through the website [http://efoxdesigns.com/max/crypt/hash.php](http://efoxdesigns.com/max/crypt/hash.php)
+The passwords may be generated using the script `bin/user.php`. Simply run
+```
+php bin/user.php
+```

@@ -41,7 +41,7 @@ if (!is_array($config['pdo']['options'])) {
     exit;
 }
 
-if (!isset($config['authentication_realm'])) $config['authentication_realm'] = $_SERVER['SERVER_NAME'];
+if (!isset($config['authentication']['realm'])) $config['authentication']['realm'] = $_SERVER['SERVER_NAME'];
 
 // TTL default to 300 (5 minutes)
 if (!isset($config['ttl'])) $config['ttl'] = 300;
@@ -67,7 +67,7 @@ try {
  * Authentication
  */
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
-    header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
+    header('WWW-Authenticate: Basic realm="' . $config['authentication']['realm'] . '"');
     header('HTTP/1.0 401 Unauthorized');
     echo 'This service requires basic http authentication';
     exit();
@@ -76,7 +76,6 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 /**
  * Validate user.
  */
-//var_dump($dbh);
 $sth = $dbh->prepare("SELECT * FROM users WHERE username = :username");
 if (!$sth instanceof PDOStatement) {
     header("HTTP/1.1 500 Internal Server Error");
@@ -96,7 +95,7 @@ if (!$result) {
 
 $user = $sth->fetch(PDO::FETCH_ASSOC);
 if (!is_array($user) || empty($user)) {
-    header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
+    header('WWW-Authenticate: Basic realm="' . $config['authentication']['realm'] . '"');
     header('HTTP/1.0 401 Unauthorized');
     echo "badauth\n";
     exit();
@@ -106,19 +105,19 @@ $status = 0;
 $hash=$user['password'];
 $ret = crypt($_SERVER['PHP_AUTH_PW'], $hash);
 if (function_exists('mb_strlen')) {
-    if (!is_string($ret) || mb_strlen($ret) != mb_strlen($hash) || mb_strlen($ret) <= 13) {
-        header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
+    if (!is_string($ret) || mb_strlen($ret, '8bit') != mb_strlen($hash, '8bit') || mb_strlen($ret, '8bit') <= 13) {
+        header('WWW-Authenticate: Basic realm="' . $config['authentication']['realm'] . '"');
         header('HTTP/1.0 401 Unauthorized');
         echo "badauth\n";
         exit();
     }
 
-    for ($i = 0; $i < mb_strlen($ret); $i++) {
+    for ($i = 0; $i < mb_strlen($ret, '8bit'); $i++) {
         $status |= (ord($ret[$i]) ^ ord($hash[$i]));
     }    
 } else {
     if (!is_string($ret) || strlen($ret) != strlen($hash) || strlen($ret) <= 13) {
-        header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
+        header('WWW-Authenticate: Basic realm="' . $config['authentication']['realm'] . '"');
         header('HTTP/1.0 401 Unauthorized');
         echo "badauth\n";
         exit();
@@ -130,7 +129,7 @@ if (function_exists('mb_strlen')) {
 }
 
 if ($status !== 0) {
-    header('WWW-Authenticate: Basic realm="' . $config['authentication_realm'] . '"');
+    header('WWW-Authenticate: Basic realm="' . $config['authentication']['realm'] . '"');
     header('HTTP/1.0 401 Unauthorized');
     echo "badauth\n";
     exit();

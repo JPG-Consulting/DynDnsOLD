@@ -1,6 +1,7 @@
 <?php
 /**
  * DynDns (http://github.com/JPG-Consulting/DynDns/)
+ * Open protocol for Dynamic DNS updates.
  *
  * @link      https://github.com/JPG-Consulting/DynDns/
  * @copyright Copyright (c) 2015 Juan Pedro Gonzalez (http://www.jpg-consulting.com.com)
@@ -8,9 +9,19 @@
  */
 
 /**
+ * This makes our life easier when dealing with paths. Everything is relative
+ * to the application root now.
+ */
+chdir(dirname(dirname(__DIR__)));
+
+/**
+ * Password hash library
+ */
+require_once 'includes/password_hash.php';
+/**
  * Configuration values
  */
-$config = require dirname(dirname(__DIR__)) . '/config/dyndns.config.php';
+$config = require 'config/dyndns.config.php';
 
 /**
  * Program start
@@ -101,34 +112,7 @@ if (!is_array($user) || empty($user)) {
     exit();
 }
 
-$status = 0;
-$hash=$user['password'];
-$ret = crypt($_SERVER['PHP_AUTH_PW'], $hash);
-if (function_exists('mb_strlen')) {
-    if (!is_string($ret) || mb_strlen($ret, '8bit') != mb_strlen($hash, '8bit') || mb_strlen($ret, '8bit') <= 13) {
-        header('WWW-Authenticate: Basic realm="' . $config['authentication']['realm'] . '"');
-        header('HTTP/1.0 401 Unauthorized');
-        echo "badauth\n";
-        exit();
-    }
-
-    for ($i = 0; $i < mb_strlen($ret, '8bit'); $i++) {
-        $status |= (ord($ret[$i]) ^ ord($hash[$i]));
-    }    
-} else {
-    if (!is_string($ret) || strlen($ret) != strlen($hash) || strlen($ret) <= 13) {
-        header('WWW-Authenticate: Basic realm="' . $config['authentication']['realm'] . '"');
-        header('HTTP/1.0 401 Unauthorized');
-        echo "badauth\n";
-        exit();
-    }
-
-    for ($i = 0; $i < strlen($ret); $i++) {
-        $status |= (ord($ret[$i]) ^ ord($hash[$i]));
-    }
-}
-
-if ($status !== 0) {
+if (!password_verify($_SERVER['PHP_AUTH_PW'], $user['password'])) {
     header('WWW-Authenticate: Basic realm="' . $config['authentication']['realm'] . '"');
     header('HTTP/1.0 401 Unauthorized');
     echo "badauth\n";

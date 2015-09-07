@@ -1,6 +1,7 @@
 <?php
 /**
  * DynDns (http://github.com/JPG-Consulting/DynDns/)
+ * Open protocol for Dynamic DNS updates.
  *
  * @link      https://github.com/JPG-Consulting/DynDns/
  * @copyright Copyright (c) 2015 Juan Pedro Gonzalez (http://www.jpg-consulting.com.com)

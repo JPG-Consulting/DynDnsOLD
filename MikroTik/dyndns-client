@@ -1,0 +1,24 @@
+#---------------------------------------------------------------------
+# MikroTik RouterOS DynDNS Update Client
+#---------------------------------------------------------------------
+
+#-- Settings ---------------------------------------------------------
+
+:local WANInterface "pppoe-out1"
+:local DYNDNSHostname "your.dynamic-dns.server.com"
+:local DYNDNSServer "your.hostname.com"
+:local DYNDNSUsername "username"
+:local DYNDNSPassword "password"
+
+#-- Update -----------------------------------------------------------
+
+:local IpCurrent [/ip address get [find interface=$WANInterface] address];
+:for i from=( [:len $IpCurrent] - 1) to=0 do={
+    :if ( [:pick $IpCurrent $i] = "/") do={
+        :local NewIP [:pick $IpCurrent 0 $i];
+        :if ([:resolve $DYNDNSHostname] != $NewIP) do={
+            /tool fetch mode=https user=$DYNDNSUsername password=$DYNDNSPassword url="https://$DYNDNSServer/nic/update\3Fhostname=$DYNDNSHostname&myip=$NewIP" keep-result=no
+            :log info "DynDNS Update: $DYNDNSHostname - $NewIP"
+        }
+    }
+}
